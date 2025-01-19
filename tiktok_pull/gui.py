@@ -1,6 +1,4 @@
-import json
 import os
-import re
 import tkinter as tk
 
 from dataclasses import dataclass
@@ -12,47 +10,16 @@ import requests
 from tiktok_pull import consts
 
 
-def get_tiktok_data(path: str = consts.DEFAULT_DATA_PATH) -> dict:
-    with open(path, "r", encoding="UTF-8") as fs:
-        return json.load(fs)
-
-
-def get_video_list(data: dict) -> list[dict]:
-    video_list = data.get("Video", {}).get("Videos", {}).get("VideoList", [])
-    return video_list
-
-
-def convert_str(text: str) -> str:
-    fix_re = re.compile(r"[ \-\(\)\"'_]+")
-    fixed = fix_re.sub("_", text)
-
-    return fixed.replace(":", "-")
-
-
-def get_link(video_obj: dict) -> list[tuple[str, str]]:
-    url = video_obj["Link"]
-    date = convert_str(video_obj["Date"])
-    sound = convert_str(video_obj["Sound"])
-    name = f"{date}-{sound}.mp4"
-    return url, name
-
-
 @dataclass
 class TTPullGui:
     root: tk.Tk = None
-    data_path_var: tk.StringVar = None
-    output_path_var: tk.StringVar = None
-
-    data_entry: tk.Entry = None
-    output_entry: tk.Entry = None
-
-    browse_data_button: tk.Button = None
-    browse_output_button: tk.Button = None
-
+    entry_var: tk.StringVar = None
+    entry: tk.Entry = None
+    browse_button: tk.Button = None
     submit_button: tk.Button = None
     cancel_button: tk.Button = None
-    selected_data_path: str = None
-    def_data_path: str = None
+    selected_path: str = None
+    def_path: str = None
 
     def __post_init__(self) -> None:
         # Create the main window
@@ -62,22 +29,20 @@ class TTPullGui:
 
         # Create a StringVar to hold the file path
 
-        if not os.path.exists(self.def_data_path):
-            self.def_data_path = ""
+        if not os.path.exists(self.def_path):
+            self.def_path = ""
 
-        self.data_path_var = tk.StringVar(value=self.def_data_path)
+        self.entry_var = tk.StringVar(value=self.def_path)
 
         # Create an Entry widget for displaying the file path
-        self.data_entry = tk.Entry(
-            self.root, textvariable=self.data_path_var, width=40
-        )
-        self.data_entry.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
+        self.entry = tk.Entry(self.root, textvariable=self.entry_var, width=40)
+        self.entry.grid(row=0, column=0, columnspan=2, padx=10, pady=10)
 
         # Create a Button to open the file dialog
-        self.browse_data_button = tk.Button(
+        self.browse_button = tk.Button(
             self.root, text="Browse", command=self.browse_file
         )
-        self.browse_data_button.grid(row=0, column=2, padx=10, pady=10)
+        self.browse_button.grid(row=0, column=2, padx=10, pady=10)
 
         # Create submit and cancel buttons
         self.submit_button = tk.Button(
@@ -93,21 +58,21 @@ class TTPullGui:
     def run(self) -> str:
         # Start the main event loop
         self.root.mainloop()
-        return self.selected_data_path
+        return self.selected_path
 
     def browse_file(self):
         # Open a file dialog and store the selected file path in the entry widget
         filepath = filedialog.askopenfilename()
-        self.data_path_var.set(filepath)  # Set the retrieved file path
+        self.entry_var.set(filepath)  # Set the retrieved file path
 
     def submit(self):
         # Store the file path and close the window
-        self.selected_data_path = self.data_path_var.get()
+        self.selected_path = self.entry_var.get()
         self.root.destroy()
 
     def cancel(self):
         # Close the window without storing the file path
-        self.selected_data_path = None
+        self.selected_path = None
         self.root.destroy()
 
 
@@ -168,83 +133,34 @@ class DownloadStatusWindow(tk.Toplevel):
         self.overall_progress["maximum"] = max_value
 
 
-@dataclass
 class FileDownloaderApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("File Downloader")
+        self.filepath = None
+        self.download_status_window: DownloadStatusWindow = None
 
-    root: tk.Tk = None
-
-    def_data_path: str = ""
-    selected_data_path: str = None
-    data_path_var: tk.StringVar = None
-    data_entry: tk.Entry = None
-
-    def_output_path: str = ""
-    selected_output_path: str = None
-    output_path_var: tk.StringVar = None
-    output_entry: tk.Entry = None
-
-    browse_data_button: tk.Button = None
-    browse_output_button: tk.Button = None
-
-    submit_button: tk.Button = None
-    cancel_button: tk.Button = None
-    selected_path: str = None
-
-    # download_status_window: DownloadStatusWindow = None
-
-    def __post_init__(self):
-        # Create the main window
-        self.root = tk.Tk()
-        self.root.title("TikTok Content Downloader")
-        self.root.geometry("400x100")  # Set size of the window
-
-        if not os.path.exists(self.def_data_path):
-            self.def_data_path = ""
-
-        if not os.path.exists(self.def_output_path):
-            self.def_output_path = ""
-
-        self.data_path_var = tk.StringVar(value=self.def_data_path)
-        self.output_path_var = tk.StringVar(value=self.def_output_path)
-
-        self.entry_frame = tk.Frame(self.root)
-        # Create an Entry widget for displaying the file path
-        """ self.data_entry = tk.Entry(
-            self.root, textvariable=self.data_path_var, width=40
-        )
-        self.data_entry.grid(row=0, column=0, columnspan=2, padx=10, pady=10) """
-
-        """ # Create an Entry widget for displaying the file path
-        self.output_entry = tk.Entry(
-            self.root, textvariable=self.output_path_var, width=40
-        )
-        self.output_entry.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
-
-        self.button_frame = tk.Frame(self.root)
+        self.button_frame = tk.Frame(root)
         self.button_frame.pack(pady=10)
 
-        self.browse_data_button = tk.Button(
+        self.browse_button = tk.Button(
             self.button_frame, text="Browse File", command=self.browse_file
         )
-        self.browse_data_button.pack(side=tk.LEFT, padx=5)
+        self.browse_button.pack(side=tk.LEFT, padx=5)
 
         self.download_button = tk.Button(
             self.button_frame, text="Start Download", command=self.start_downloads
         )
-        self.download_button.pack(side=tk.LEFT, padx=5) """
-
-    def run(self) -> None:
-        # Start the main event loop
-        self.root.mainloop()
+        self.download_button.pack(side=tk.LEFT, padx=5)
 
     def browse_file(self):
-        self.def_data_path = filedialog.askopenfilename()
+        self.filepath = filedialog.askopenfilename()
 
     def start_downloads(self):
-        if not self.def_data_path:
+        if not self.filepath:
             return
 
-        with open(self.def_data_path, "r") as file:
+        with open(self.filepath, "r") as file:
             urls = file.read().splitlines()
 
         urls = [tuple(l.split(",")) for l in urls]
