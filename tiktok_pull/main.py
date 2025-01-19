@@ -1,12 +1,20 @@
 import os
 import re
 import json
+import tkinter as tk
 
 from tqdm import tqdm
 
-from tiktok_pull.tiktok_pull import consts
+from tiktok_pull import consts
+from tiktok_pull.gui import (
+    TTPullGui,
+    ErrorDialog,
+    FileDownloaderApp,
+    DownloadStatusWindow,
+)
 
-def get_tiktok_data(path: str = ) -> dict:
+
+def get_tiktok_data(path: str = consts.DEFAULT_DATA_PATH) -> dict:
     with open(path, "r", encoding="UTF-8") as fs:
         return json.load(fs)
 
@@ -32,11 +40,26 @@ def get_link(video_obj: dict) -> list[tuple[str, str]]:
 
 
 def main():
-    user_data = get_tiktok_data()
-    dl_data = [get_link(v) for v in videolist]
+    app = FileDownloaderApp()
+    app.run()
+    """ dialog = TTPullGui(def_path=os.path.abspath(consts.DEFAULT_DATA_PATH))
+    dialog.run()
 
-    for url, name in tqdm(dl_data):
-        os.system(f'curl "{url}" -o "{name}"')
+    path = dialog.selected_path
+    if path is None:
+        return
+
+    if not path or not os.path.exists(path):
+        ErrorDialog(message=f"Error, invalid path provided:\n{path}").run()
+        return
+
+    user_data = get_tiktok_data(path)
+    video_list = get_video_list(user_data)
+    dl_data = [get_link(v) for v in video_list]
+
+    urls = [f"{d[0]},{d[1]}" for d in dl_data[:4]]
+    with open("urls.txt", "w", encoding="UTF-8") as fs:
+        fs.write("\n".join(urls)) """
 
 
 if __name__ == "__main__":

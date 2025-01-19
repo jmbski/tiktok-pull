@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+user_data_tiktok.json
 # C extensions
 *.so
 
