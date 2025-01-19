@@ -69,7 +69,7 @@ class ErrorDialog:
         self.root.destroy()
 
 
-class _DownloadStatusWindow(tk.Toplevel):
+class DownloadStatusWindow(tk.Toplevel):
     def __init__(self, master):
         super().__init__(master)
         self.title("Download Status")
@@ -97,7 +97,7 @@ class _DownloadStatusWindow(tk.Toplevel):
 
 
 @dataclass
-class DownloadStatusWindow:
+class _DownloadStatusWindow:
     root: tk.Tk = None
 
     overall_label: tk.Label = None
@@ -194,7 +194,7 @@ class FileDownloaderApp:
 
     def __post_init__(self):
         # Create the main window
-        self.root = tk.Tk()
+        # self.root = tk.Tk()
         self.root.title("TikTok Content Downloader")
         self.root.geometry("500x300")  # Set size of the window
 
@@ -275,7 +275,7 @@ class FileDownloaderApp:
         filepath = filedialog.askdirectory()
         self.output_path_var.set(filepath)
 
-    def _start_downloads(self):
+    def start_downloads(self):
         if not self.def_data_path or not self.def_output_path:
             return
 
@@ -295,7 +295,7 @@ class FileDownloaderApp:
         except queue.Empty:
             self.root.after(100, self.process_queue)
 
-    def start_downloads(self):
+    def _start_downloads(self):
         if not self.def_data_path or not self.def_output_path:
             return
 
@@ -308,7 +308,7 @@ class FileDownloaderApp:
         thread = Thread(target=self.download_files, args=(dl_data[:4],))
         thread.start()
 
-    def _download_files(self, url_data: list[tuple[str, str]]):
+    def download_files(self, url_data: list[tuple[str, str]]):
         num_files = len(url_data)
         i = 1
         for url, name in url_data:
@@ -326,7 +326,7 @@ class FileDownloaderApp:
             self.download_status_window.update_overall(i, num_files)
             i += 1
 
-    def download_files(self, url_data: list[tuple[str, str]]):
+    def _download_files(self, url_data: list[tuple[str, str]]):
         num_files = len(url_data)
         i = 1
         for url, name in url_data:

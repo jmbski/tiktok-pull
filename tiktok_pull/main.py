@@ -39,8 +39,9 @@ def get_link(video_obj: dict) -> list[tuple[str, str]]:
 
 
 def main():
-    app = FileDownloaderApp()
-    app.run()
+    root = tk.Tk()
+    app = FileDownloaderApp(root=root)
+    root.mainloop()
     """ dialog = TTPullGui(def_path=os.path.abspath(consts.DEFAULT_DATA_PATH))
     dialog.run()
 
