@@ -17,3 +17,6 @@ nanoid = "^2.0.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+tiktok = "tiktok_pull.main:main"

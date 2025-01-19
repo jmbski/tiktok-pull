@@ -7,7 +7,6 @@ from tqdm import tqdm
 
 from tiktok_pull import consts
 from tiktok_pull.gui import (
-    TTPullGui,
     ErrorDialog,
     FileDownloaderApp,
     DownloadStatusWindow,
