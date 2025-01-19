@@ -160,7 +160,7 @@ class _DownloadStatusWindow:
             i += 1
 
 
-@dataclass
+# @dataclass
 class FileDownloaderApp:
 
     root: tk.Tk = None
@@ -188,13 +188,34 @@ class FileDownloaderApp:
     cancel_button: tk.Button = None
     selected_path: str = None
 
-    progress_queue: queue.Queue = queue.Queue()
+    # progress_queue: queue.Queue = queue.Queue()
 
     download_status_window: DownloadStatusWindow = None
 
-    def __post_init__(self):
+    def __init__(self, root: tk.Tk):
         # Create the main window
         # self.root = tk.Tk()
+
+        self.root: tk.Tk = root
+        self.entry_frame: tk.Frame = None
+        self.data_frame: tk.Frame = None
+        self.def_data_path: str = ""
+        self.selected_data_path: str = None
+        self.data_path_var: tk.StringVar = None
+        self.data_label: tk.Label = None
+        self.data_entry: tk.Entry = None
+        self.output_frame: tk.Frame = None
+        self.def_output_path: str = ""
+        self.selected_output_path: str = None
+        self.output_path_var: tk.StringVar = None
+        self.output_label: tk.Label = None
+        self.output_entry: tk.Entry = None
+        self.browse_data_button: tk.Button = None
+        self.browse_output_button: tk.Button = None
+        self.submit_button: tk.Button = None
+        self.cancel_button: tk.Button = None
+        self.selected_path: str = None
+
         self.root.title("TikTok Content Downloader")
         self.root.geometry("500x300")  # Set size of the window
 
@@ -287,7 +308,7 @@ class FileDownloaderApp:
         thread = Thread(target=self.download_files, args=(dl_data[:4],))
         thread.start()
 
-    def process_queue(self):
+    """ def process_queue(self):
         try:
             while True:
                 update_method, args = self.progress_queue.get_nowait()
@@ -306,7 +327,7 @@ class FileDownloaderApp:
         self.download_status_window = DownloadStatusWindow(self.root)
         self.root.after(100, self.process_queue)  # Start processing the queue
         thread = Thread(target=self.download_files, args=(dl_data[:4],))
-        thread.start()
+        thread.start() """
 
     def download_files(self, url_data: list[tuple[str, str]]):
         num_files = len(url_data)
@@ -326,7 +347,7 @@ class FileDownloaderApp:
             self.download_status_window.update_overall(i, num_files)
             i += 1
 
-    def _download_files(self, url_data: list[tuple[str, str]]):
+    """ def _download_files(self, url_data: list[tuple[str, str]]):
         num_files = len(url_data)
         i = 1
         for url, name in url_data:
@@ -348,16 +369,16 @@ class FileDownloaderApp:
             self.progress_queue.put(
                 (self.download_status_window.update_overall, (i, num_files))
             )
-            i += 1
-
-    def _error(self, msg: str) -> None:
-        ErrorDialog(msg).run()
+            i += 1 """
 
     def error(self, msg: str) -> None:
+        ErrorDialog(msg).run()
+
+    """ def error(self, msg: str) -> None:
         def show_error():
             ErrorDialog(msg).run()
 
-        self.progress_queue.put((show_error, ()))
+        self.progress_queue.put((show_error, ())) """
 
     def check_path(self, path: str) -> bool:
         if not os.path.exists(path):
